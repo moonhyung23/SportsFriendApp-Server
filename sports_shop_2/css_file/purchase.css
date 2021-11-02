@@ -1,0 +1,143 @@
+/* 전체 영역  */
+
+.div_main {
+    padding: 20px;
+    background-color: #f4f4ff;
+    width: 1900px;
+    margin: auto;
+    text-align: center;
+}
+
+
+/* 테이블  */
+
+.table-bordered {
+    margin-top: 100px;
+}
+
+
+/*1. 테이블 헤드 */
+
+
+/* 1)상품 정보 */
+
+.td_item_infor {
+    display: flex;
+    width: 1300px;
+    height: 300px;
+}
+
+.td_item_infor h1 {
+    margin-top: 20px;
+    margin-left: 40px;
+}
+
+
+/* 최종결제 금액 h1태그 */
+
+.div_purchase h1 {
+    margin-top: 40px;
+    font-size: 60px;
+}
+
+
+/* 배송지 정보 h1태그 */
+
+.div_deliver_infor h1 {
+    margin-left: 100px;
+    font-size: 60px;
+    font-weight: bold;
+    margin-top: 100px;
+    text-align: left;
+}
+
+
+/* 배송지 선택 폼 */
+
+.div_delever_option {
+    margin-left: 100px;
+    margin-top: 40px;
+    text-align: left;
+}
+
+
+/* 배송지 선택 버튼 
+ 1) 기본 배송지
+ 2) 신규 배송지
+*/
+
+.div_delever_option ul {
+    display: flex;
+    list-style: none;
+}
+
+.div_delever_option ul li {
+    font-size: 40px;
+    margin: 20px;
+}
+
+.new_delivery_addr {
+    list-style: none;
+    margin-top: 100px;
+    margin-left: 100px;
+    text-align: left;
+}
+
+.new_delivery_addr li {
+    margin-top: 10px;
+}
+
+
+/* 1.수령인 */
+
+.input-group-prepend {
+    width: 400px;
+}
+
+
+/* 1)수령인  */
+
+.input-group-prepend span {
+    font-size: 30px;
+}
+
+
+/* 수령인 입력란 */
+
+.input-group-prepend input {
+    font-size: 30px;
+}
+
+
+/* 3.연락처 선택 div(전체) */
+
+.div_phone_number {
+    margin-top: 30px;
+}
+
+
+/* 3-1).연락처 기본 선택 */
+
+.div_phone_number select {
+    width: 130px;
+    font-size: 40px;
+}
+
+
+/* 3-2)연락처 선택 옵션 */
+
+.div_phone_number select option {
+    width: 100px;
+    font-size: 40px;
+}
+
+
+/* 3-3)연락처 입력 input */
+
+.div_phone_number input {
+    width: 100px;
+    font-size: 35px;
+}
+
+
+/* 4.배송지 주소 page에 style로 정의함 */

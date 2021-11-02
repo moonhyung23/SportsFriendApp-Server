@@ -1,0 +1,197 @@
+body {
+    margin: 0;
+}
+
+
+/* 텍스트 밑줄 없음 
+   텍스트 색상 횐색*/
+
+a {
+    text-decoration: none;
+    color: white;
+}
+
+
+/* 로고 이미지 */
+
+.logo_image {
+    display: flex;
+    justify-content: center;
+}
+
+
+/* 사용자 메뉴 */
+
+.navbar_myinfor {
+    margin-top: 30px;
+    display: flex;
+    list-style: none;
+    justify-content: end;
+    margin-right: 25px;
+}
+
+.navbar_myinfor li {
+    padding: 20px;
+}
+
+
+/* 사용자 메뉴 글자크기 */
+
+.navbar_myinfor li a h1 {
+    font-size: 60px;
+}
+
+
+/* 상품 카테고리 */
+
+.navbar_menu {
+    color: white;
+    margin-top: 10px;
+    width: 100%;
+    background-color: darkseagreen;
+    display: flex;
+    justify-content: center;
+    list-style: none;
+}
+
+.navbar_menu li {
+    margin-top: 10px;
+    padding: 30px;
+    margin: 40px;
+    font-size: 100px;
+}
+
+.navbar_menu li a {
+    color: black;
+}
+
+.navbar_menu li:hover {
+    background-color: #d49466;
+    border-radius: 4px;
+}
+
+
+/* 전체 상품 section  */
+
+.item_infor {
+    width: 100%;
+    margin-left: 100px;
+    display: flex;
+    justify-content: center;
+}
+
+
+/* 상품 정보 목록 (이미지 제외) */
+
+.item_infor ul {
+    margin-top: 100px;
+    margin-left: 100px;
+    list-style: none;
+}
+
+
+/* 신발 사이즈 선택 태그 */
+
+.custom-select option {
+    width: 400px;
+    font-size: 30px;
+}
+
+#div_edit_delete {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+#div_edit_delete button {
+    margin: 10px;
+}
+
+
+/* 상품메뉴  */
+
+.buy_menu {
+    display: flex;
+}
+
+.buy_menu button {
+    margin-top: 50px;
+    width: 200px;
+    margin-right: 20px;
+    height: 70px;
+    font-size: 30px;
+}
+
+
+/* 하단 메뉴 (상세정보, 구매평 등등) */
+
+.bottom_menu {
+    text-align: center;
+    list-style: none;
+}
+
+.bottom_menu h1 {
+    font-size: 50px;
+}
+
+
+/* 상세정보 텓텍스트 */
+
+#h1_item_content {
+    height: 400px;
+    margin-top: 50px;
+    padding-left: 300px;
+    padding-right: 300px;
+}
+
+.num {
+    margin-top: 30px;
+    margin-left: 15px;
+}
+
+
+/* 업다운 버튼 폼 */
+
+.updown {
+    color: #0075ff;
+    font-size: 2em;
+    letter-spacing: -3px;
+}
+
+
+/* 수량확인 폼 */
+
+.updown input {
+    font-size: 40px;
+}
+
+
+/* 업다운 버튼 */
+
+.updown i {
+    font-size: 70px;
+}
+
+
+/* 상품 가격  */
+
+.div_cost {
+    margin-top: 30px;
+    margin-left: 15px;
+}
+
+.div_cost h1 {
+    font-size: 50px;
+}
+
+
+/* 메뉴 고정 */
+
+
+/* #footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 6rem;
+} */

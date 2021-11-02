@@ -1,0 +1,3 @@
+# Project exclude paths
+/chat/node_modules/
+/out/

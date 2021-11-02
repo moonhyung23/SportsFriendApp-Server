@@ -1,0 +1,372 @@
+body {
+    margin: 0;
+}
+
+
+/* 텍스트 밑줄 없음 
+   텍스트 색상 횐색*/
+
+a {
+    text-decoration: none;
+    color: white;
+}
+
+
+/* 상단 헤더 */
+
+.header {
+    display: flex;
+    width: 100%;
+    justify-content: right;
+}
+
+
+/* 로그인 관련 내비게이션 바 */
+
+.navbar_myinfor_mypage {
+    color: black;
+    display: flex;
+    list-style: none;
+    padding: 10px;
+    font-size: 55px;
+}
+
+.navbar_myinfor_mypage li {
+    padding: 20px;
+}
+
+.navbar_myinfor_mypage li a {
+    color: black;
+}
+
+
+/* 메인 로고 이미지 */
+
+.iv_main {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+
+/* 메인 로고 이미지(상품등록내역) */
+
+.div_main_img {
+    width: 100%;
+    justify-content: center;
+    display: flex;
+}
+
+.div_main_img a img {
+    width: 700px;
+    height: 500px;
+}
+
+.iv_main a img {
+    width: 700px;
+    height: 500px;
+}
+
+
+/* 사이드 바 */
+
+.iv_main ul {
+    margin-top: 20px;
+    width: 450px;
+    height: 100px;
+    font-size: 35px;
+}
+
+
+/* 마이페이지 사이드 메뉴 */
+
+#mypage_sidemenu {
+    margin-top: 50px;
+    text-align: center;
+    width: 100%;
+}
+
+#mypage_sidemenu li {
+    height: 150px;
+    font-size: 60px;
+}
+
+
+/* 사이드 바 글씨 */
+
+.iv_main ul li {
+    color: black;
+    font-weight: bold;
+}
+
+
+/* 마이페이지 텍스트(페이지 이름) */
+
+.text_mypage {
+    width: 100%;
+    font-size: 70px;
+    color: #37a129;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    font-weight: bold;
+}
+
+
+/* 전체 테이블 주문내역 */
+
+.main {
+    /* 바탕 색상 */
+    padding: 30px;
+    width: 5000px;
+    height: 15000px;
+}
+
+
+/* 테이블 상단 행 */
+
+
+/* 테이블 상단 컬럼 */
+
+.table-hover thead tr th {
+    width: 250px;
+    height: 50px;
+    font-size: 35px;
+}
+
+
+/* 테이블 행 (등록한 상품 내역)*/
+
+.tr_add_item_List {
+    height: 300px;
+}
+
+.tr_add_item_List td h1 {
+    font-size: 50px;
+}
+
+.tr_orderList {
+    width: 3300px;
+}
+
+
+/* 테이블 행(내용) 글자  */
+
+.tr_orderList td h1 {
+    font-size: 40px;
+}
+
+
+/* 테이블 품목 컬럼  */
+
+.item_name_img {
+    /* 품목 가로 정렬 */
+    display: inline-flex;
+    /* 품목 이름 수직 가운데 정렬 */
+}
+
+
+/* 주문관련 버튼 */
+
+.div_btn_orderList {
+    display: flex;
+    margin: 20px;
+    justify-content: center;
+}
+
+.div_btn_orderList button {
+    width: 300px;
+    height: 100px;
+    margin: 10px;
+}
+
+
+/* 버튼 텍스트 */
+
+.div_btn_orderList button h1 {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+
+/* 비밀번호 입력 페이지 
+    비밀번호 입력 창
+    */
+
+#div_input_pw {
+    width: 1000px;
+    /* 가운데 정렬 */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+
+/* 장바구니 업 다운 버튼 */
+
+.updown {
+    color: #0075ff;
+    font-size: 3em;
+    letter-spacing: -5px;
+}
+
+.updown span i {
+    font-size: 70px;
+    margin: 5px;
+}
+
+
+/* 장바구니 테이블 */
+
+.table-hover {
+    background-color: linen;
+    margin-left: 150px;
+    text-align: center;
+}
+
+
+/* 장바구니 테이블 로우  */
+
+.tr_basket {
+    width: 2000px;
+}
+
+.table-hover thead {
+    width: 1500px;
+}
+
+
+/*장바구니 상품 삭제 및 주문 버튼 및 결제금액, 합계금액 */
+
+.div_basket_option {
+    margin-left: 150px;
+    width: 2000px;
+    text-align: right;
+}
+
+
+/*장바구니 상품 삭제, 전체 삭제 버튼 */
+
+.div_basket_delete button {
+    margin: 10px;
+    font-size: 40px;
+}
+
+
+/*장바구니 상품 수량, 합계 금액*/
+
+.div_basket_option div {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+
+/* 장바구니 상품들 주문 버튼 */
+
+#btn_item_order_basket {
+    font-size: 40px;
+}
+
+
+/* 테이블 하단 페이지 번호 영역 */
+
+.page_ul {
+    width: 2200px;
+    margin-left: 5%;
+    margin-right: auto;
+}
+
+.page_ul li {
+    list-style-type: none;
+    float: left;
+}
+
+.page_ul li .page-link {
+    text-align: center;
+    width: 100px;
+    font-size: 50px;
+    font-weight: bold;
+}
+
+
+/* 페이지 이동 옵션 
+ - '처음', '마지막', '다음', '이전' 
+*/
+
+.page_ul li #page_item {
+    text-align: center;
+    width: 280px;
+    font-size: 50px;
+    font-weight: bold;
+}
+
+
+/* 고객 주문내역 하단 페이지 번호 영역 */
+
+.page_ul_order {
+    width: 2500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.page_ul_order li {
+    list-style-type: none;
+    float: left;
+}
+
+.page_ul_order li .page-link {
+    text-align: center;
+    width: 100px;
+    font-size: 50px;
+    font-weight: bold;
+}
+
+
+/*
+    주문내역
+페이지 이동 옵션 
+ - '처음', '마지막', '다음', '이전' 
+*/
+
+.page_ul_order li #page_item {
+    text-align: center;
+    width: 280px;
+    font-size: 50px;
+    font-weight: bold;
+}
+
+
+/* 문의게시판 하단 페이지 번호 영역 */
+
+.page_ul_bulletin {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.page_ul_bulletin li {
+    list-style-type: none;
+    float: left;
+}
+
+.page_ul_bulletin li .page-link {
+    text-align: center;
+    width: 100px;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+
+/* 
+    게시판
+페이지 이동 옵션 
+ - '처음', '마지막', '다음', '이전' 
+*/
+
+.page_ul_bulletin li #page_item {
+    text-align: center;
+    width: 200px;
+    font-size: 40px;
+    font-weight: bold;
+}
