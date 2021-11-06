@@ -4,6 +4,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class DbManager {
     Connection con = null;
@@ -44,15 +45,18 @@ public class DbManager {
         }
     }
 
-    // 추가
-    public void chat_RoomInsert(ArrayList<String> List_chat) {
+    // 채팅 방 추가
+    public void Insert_chatRoom(ArrayList<String> List_chat) {
         try {
-            //* 채팅 정보 (@)
             // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
             // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
             // 4: 보낸사람(방장) idx
-            // 5: 채팅 방 번호
-
+            // 5: 채팅  방 idx 번호
+            // 6: 채팅 idx 번호
+            // 7: 채팅 보낸 날짜(시간)
+            // 8: 채팅 보낸 사람 닉네임
+            // 9: 채팅 방 제목
+            // 10: 프로필 사진
             Connection();
             String sql = "INSERT INTO ChatRoom  (" +
                     "attend_idx, " +
@@ -65,12 +69,11 @@ public class DbManager {
                     " VALUES (?, ?, ?, ?, ?, ?, ?)";
             System.out.println("채팅방 추가 sql: " + sql);
             String[] ar_personCnt = List_chat.get(1).split("\\$");
-
             pstmt = con.prepareStatement(sql);
             pstmt.setString(1, List_chat.get(1)); //채팅 방 참여자 인덱스 번호
-            pstmt.setString(2, List_chat.get(2)); //채팅 방 제목
+            pstmt.setString(2, List_chat.get(9)); //채팅 방 제목
             pstmt.setInt(3, ar_personCnt.length); //채팅 방 인원 수
-            pstmt.setString(4, getDate()); //채팅 방 만든 시간
+            pstmt.setString(4, List_chat.get(7)); //채팅 방 만든 날짜(시간)
             pstmt.setString(5, ""); //최근에 채팅 보낸 시간
             pstmt.setInt(6, Integer.parseInt(List_chat.get(4))); //방장 인덱스 번호
             pstmt.setString(7, List_chat.get(5)); //방 번호
@@ -79,7 +82,6 @@ public class DbManager {
             if (insert == 1) {
                 System.out.println("채팅 방 정보 저장성공!");
             }
-
             closeConnection();
         } catch (SQLException e) {
             // TODO Auto-generated catch block
@@ -87,12 +89,55 @@ public class DbManager {
         }
     }
 
+    //채팅 정보 추가
+    public void Insert_ChatInfor(ArrayList<String> List_chat) {
+        try {
+            //* 채팅 정보 (@)
+            // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
+            // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
+            // 4: 보낸사람(방장) idx
+            // 5: 채팅 방 번호
+            // 6: 채팅 번호
+            // 7: 채팅 보낸 날짜(시간)
+            // 8: 채팅 보낸 사람 닉네임
+            // 9: 채팅 방 제목
+            // 10: 프로필 사진
+            Connection();
+            String sql = "INSERT INTO Chat  (" +
+                    "chat_user_idx, " +
+                    "chat_content," +
+                    "chat_uuid, " +
+                    "chat_created_date, " +
+                    "chat_room_uuid, " +
+                    "status_idx)" +
+                    " VALUES (?, ?, ?, ?, ?, ?)";
+
+            //채팅 방에 초대된 유저 idx
+            pstmt = con.prepareStatement(sql);
+            pstmt.setInt(1, Integer.parseInt(List_chat.get(4))); //채팅 작성자 인덱스번호
+            pstmt.setString(2, List_chat.get(3)); //채팅 내용
+            pstmt.setString(3, List_chat.get(6)); //채팅 번호
+            pstmt.setString(4, List_chat.get(7)); //채팅 보낸 날짜(시간)
+            pstmt.setString(5, List_chat.get(5)); //채팅 방 번호
+            pstmt.setInt(6, 2); //채팅 읽음 표시
+
+            int insert = pstmt.executeUpdate();
+            if (insert == 1) {
+                System.out.println("채팅 정보 저장성공!");
+            }
+            closeConnection();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+
     // 삭제
-    public void delete() {
+    public void delete(String room_idx) {
         try {
             Connection();
-
-            String sql = "DELETE FROM ChatRoom WHERE c1 = 1";
+            String sql = "DELETE FROM ChatRoom WHERE room_uuid = " + room_idx;
             pstmt = con.prepareStatement(sql);
             pstmt.executeUpdate();
             closeConnection();
@@ -116,17 +161,21 @@ public class DbManager {
         }
     }
 
-    // 조회
-    public void select() {
+    //채팅 방 중복 체크
+    public void select_chatRoom_RedunCheck(String room_uuid) {
         try {
             Connection();
-            String sql = "SELECT * FROM ChatRoom WHERE c1 = 2";
+            String sql = "SELECT invite_idx FROM ChatRoom WHERE room_uuid = " + room_uuid;
             rs = stmt.executeQuery(sql);
+            String attend_idx = "";
             while (rs.next()) {
-                System.out.println("1: " + rs.getInt(1));
-                System.out.println("2: " + rs.getInt(2));
+                attend_idx = rs.getString(1);
             }
+            String[] ar_attend_idx = attend_idx.split("\\$");
+            /*String[] ar_invite_idx = invite_idx.split("\\$");
+            if(Arrays.equals(ar_attend_idx, )){
 
+            }*/
             closeConnection();
         } catch (SQLException e) {
             // TODO Auto-generated catch block
@@ -134,11 +183,37 @@ public class DbManager {
         }
     }
 
+    //채팅 방 참여자 정보 조회
+    public String select_Invite_idx(String room_idx) {
+        try {
+            String invite_idx = "";
+            Connection();
+            StringBuilder sb = new StringBuilder();
+            //채팅 방 번호가 같은 행을 채팅방 정보 테이블에서 조회
+            String sql = sb.append("SELECT * FROM ChatRoom WHERE room_uuid = '").append(room_idx).append("'").toString();
+            System.out.println("sql: " + sql);
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                invite_idx = rs.getString(1);
+            }
+            closeConnection();
+            return invite_idx;
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return "방정보 조회 에러";
+    }
+
     public String getDate() {
         Date today = new Date();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
-        return dateFormat.format(today);
+        TimeZone tz = TimeZone.getTimeZone("Asia/Seoul");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
+        df.setTimeZone(tz);
+        return df.format(today);
     }
+
+//    public
 
 
     /*// 검색

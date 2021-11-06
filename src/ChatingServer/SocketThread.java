@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.UUID;
 
 /* 채팅 서버 에코 스레드
  *  -소켓에 연결된 유저에게 메세지를 보내준다.
@@ -24,6 +23,8 @@ public class SocketThread extends Thread {
     //1번 -> json 형식 에러
     int jsonError_flag = 0;
     DbManager dbManager;
+    OutputStream out;
+    PrintWriter writer;
 
     public SocketThread(Socket socket, DbManager dbManager) {
         this.socket = socket; // 유저 socket을 할당
@@ -68,9 +69,12 @@ public class SocketThread extends Thread {
                 // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
                 // 4: 보낸사람(방장) idx
                 // 5: 채팅 방 번호
+                // 6: 채팅 번호
+                // 7: 채팅 보낸 날자(시간)
                 System.out.println("SocketServer_방정보: " + readValue);
                 //Json으로 온 채팅 정보를 List<String>로 변환해주는 메서드
-                set_List_roomInfor(List_roomInfor, readValue);
+                // - JSON -> List
+                Set_List_roomInfor(List_roomInfor, readValue);
 
                 //채팅 방 정보
                 //1번 -> JSON 형식 에러인 경우
@@ -86,38 +90,34 @@ public class SocketThread extends Thread {
                 // - 입력한 채팅 내용 보내기
                 if (Integer.parseInt(List_roomInfor.get(0)) == 1) {
                     System.out.println("status_num1 JSON배열:  " + readValue);
-                    // 방번호
-                    room_idx = UUID.randomUUID().toString();
-                    //방정보를 리스트에 입력
-                    List_roomInfor.set(5, room_idx);
-                    Room room = RoomManager.CreateRoom(List_roomInfor.get(1), room_idx);
-                    dbManager.chat_RoomInsert(List_roomInfor);
-                    /*클라이언트들에게 메세지 보내기 */
-                    //* 채팅 정보 (@)
-                    // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
-                    // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
-                    // 4: 보낸사람(방장) idx
-                    // 5: 채팅 방 번호
-                    room.broadCast(Send_jsonArray_roomInfor(List_roomInfor));
+                    //채팅 방 정보 DB테이블에 저장
+                    dbManager.Insert_chatRoom(List_roomInfor);
+                    // 채팅정보 Db 테이블에 저장
+                    dbManager.Insert_ChatInfor(List_roomInfor);
+                    //채팅방에 초대된 사람의 idx 번호 배열
+                    String[] ar_invite_user_idx = List_roomInfor.get(1).split("\\$");
+                    /*채팅방에 초대된 사용자에게 채팅방 정보 + 채팅 보내기.*/
+                    //채팅방 정보 리스트를 Json배열로 변환해서 전달한다.
+                    broadCast(Send_jsonArray_roomInfor(List_roomInfor), ar_invite_user_idx);
                 }
+
+
                 //status_num 2번 -> 채팅 보내기
                 //  - 입력한 채팅 내용 보내기
-                //* 채팅 정보 (@)
-                // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
-                // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
-                // 4: 보낸사람(방장) idx
-                // 5: 채팅 방 번호
                 else if (Integer.parseInt(List_roomInfor.get(0)) == 2) {
                     System.out.println("status_num2 JSON배열:  " + readValue);
-                    //전체 채팅 방 조회
-                    for (int i = 0; i < RoomManager.List_room.size(); i++) {
-                        //채팅을 보낸 사용자가 참가한 방을 채팅방 리스트에서 방 번호로 찾는다.
-                        if (RoomManager.List_room.get(i).room_idx.equals(List_roomInfor.get(5))) {
-                            /*클라이언트들에게 메세지 보내기 */
-                            //해당하는 채팅 방에 참여한 모든 사용자들에게 채팅 정보(메세지)보내기.
-                            RoomManager.List_room.get(i).broadCast(Send_jsonArray_roomInfor(List_roomInfor));
-                        }
-                    }
+                    // 채팅정보 Db 테이블에 저장
+                    dbManager.Insert_ChatInfor(List_roomInfor);
+
+                    //채팅 참여자 인덱스 번호 배열로 변환
+                    String[] invite_idx = dbManager.select_Invite_idx(List_roomInfor.get(5)).split("\\$");
+                    //채팅방에 참여한 사람에게 채팅 보내주기.
+                    broadCast(readValue, invite_idx);
+                }
+
+                //status_num -> 3번 채팅 방 나가기
+                else if (Integer.parseInt(List_roomInfor.get(0)) == 3) {
+
                 }
             }
         } catch (Exception e) {
@@ -125,7 +125,9 @@ public class SocketThread extends Thread {
         }
     }
 
-    public void set_List_roomInfor(ArrayList<String> List_roomInfor, String jsonArray) {
+
+    //클라이언트에서 보낸 Json데이터 -> 리스트로 변환해주는 메서드
+    public void Set_List_roomInfor(ArrayList<String> List_roomInfor, String jsonArray) {
         String jsonarray = jsonArray;
         try {
             //초기화
@@ -142,7 +144,21 @@ public class SocketThread extends Thread {
                 String chatContent = jobject.getString("chatContent"); //채팅 내용
                 String hostIdx = jobject.getString("hostIdx"); //방장 인덱스
                 String roomIdx = jobject.getString("roomIdx"); //채팅 방 번호
+                String chatIdx = jobject.getString("chatIdx"); //채팅번호
+                String chat_created_date = jobject.getString("chat_created_date"); //채팅 생성 날짜
+                String chat_sendNickname = jobject.getString("chat_sendNickname"); //채팅 보낸 사람 닉네임
+                String chatRoom_name = jobject.getString("chatRoom_name"); //채팅 방 제목
+                String chat_profileImgUrl = jobject.getString("chat_profileImgUrl"); //채팅 보낸 사람 프로필 이미지
 
+                // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
+                // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
+                // 4: 보낸사람(방장) idx
+                // 5: 채팅  방 idx 번호
+                // 6: 채팅 idx 번호
+                // 7: 채팅 보낸 날짜(시간)
+                // 8: 채팅 보낸 사람 닉네임
+                // 9: 채팅 방 제목
+                // 10: 프로필 사진
                 //json parsing한 채팅방 정보 리스트에 저장.
                 List_roomInfor.add(0, status_num);
                 List_roomInfor.add(1, invite_UserIdx);
@@ -150,6 +166,11 @@ public class SocketThread extends Thread {
                 List_roomInfor.add(3, chatContent);
                 List_roomInfor.add(4, hostIdx);
                 List_roomInfor.add(5, roomIdx);
+                List_roomInfor.add(6, chatIdx);
+                List_roomInfor.add(7, chat_created_date);
+                List_roomInfor.add(8, chat_sendNickname);
+                List_roomInfor.add(9, chatRoom_name);
+                List_roomInfor.add(10, chat_profileImgUrl);
             }
         } catch (JSONException e) {
             //json 형식 에러
@@ -158,17 +179,44 @@ public class SocketThread extends Thread {
         }
     }
 
+    /*채팅방에 참여한 모든 사용자에게 채팅을 보냄.*/
+    void broadCast(String readValue, String[] ar_invite_user_idx) throws IOException {
+        /*채팅 방에 초대된 유저 idx를 찾는다.*/
+        // - ar_invite_user_idx -> 채팅방에 초대된 유저 idx
+        // - List<SocketConnect>에서 for문을 사용해서 찾는다.
+        //소켓에 연결된 유저 리스트 검색
+        for (int i = 0; i < MainServer.List_ConSocket.size(); i++) {
+            //채팅방에 초대된 유저 idx 배열 검색
+            for (String ar_InviteUserIdx : ar_invite_user_idx) {
+                //소켓에 연결된 유저 idx == 채팅방에 초대된 유저 idx 비교
+                if (MainServer.List_ConSocket.get(i).user_idx.equals(ar_InviteUserIdx)) {
+                    //채팅방의 참가한 사람의 socket 객체
+                    out = MainServer.List_ConSocket.get(i).socket.getOutputStream();
+                    writer = new PrintWriter(out, true);
+                    //소켓에 연결된 클라이언트에게 메세지 발송
+                    writer.println(readValue);
+                    System.out.println("broadCast: " + readValue);
+                }
+            }
+        }
+    }
+
     //서버에 채팅 방 정보 리스트 JSONArray로 변환해서  보내기
     String Send_jsonArray_roomInfor(ArrayList<String> List_roomInfor) {
         JSONArray jarray = new JSONArray();
         try {
             JSONObject jobject = new JSONObject();
-            jobject.put("status_num", List_roomInfor.get(0));
-            jobject.put("invite_UserIdx", List_roomInfor.get(1));
-            jobject.put("invite_UserNick", List_roomInfor.get(2));
-            jobject.put("chatContent", List_roomInfor.get(3));
-            jobject.put("hostIdx", List_roomInfor.get(4));
-            jobject.put("roomIdx", List_roomInfor.get(5));
+            jobject.put("status_num", List_roomInfor.get(0)); //채팅 방 생성, 채팅 보내기 구분번호
+            jobject.put("invite_UserIdx", List_roomInfor.get(1)); //초대된 사람 idx
+            jobject.put("invite_UserNick", List_roomInfor.get(2)); //초대된 사람 닉네임
+            jobject.put("chatContent", List_roomInfor.get(3)); //채팅내용
+            jobject.put("hostIdx", List_roomInfor.get(4)); //채팅방 방장 idx
+            jobject.put("roomIdx", List_roomInfor.get(5)); //채팅 방 idx
+            jobject.put("chatIdx", List_roomInfor.get(6)); //채팅 idx
+            jobject.put("chat_created_date", List_roomInfor.get(7)); //채팅 보낸 날짜
+            jobject.put("chat_sendNickname", List_roomInfor.get(8)); //채팅 보낸 사람 닉네임
+            jobject.put("chatRoom_name", List_roomInfor.get(9)); //채팅 보낸 사람 닉네임
+            jobject.put("chat_profileImgUrl", List_roomInfor.get(10)); //채팅 보낸 사람 닉네임
             jarray.put(jobject);
         } catch (JSONException e) {
             System.out.println("서버에서 데이터 보낼 때, JSON 변환 오류");
@@ -176,31 +224,4 @@ public class SocketThread extends Thread {
         return jarray.toString();
     }
 
-
-   /* public static Connection getCon(String url) {
-        Connection con = null;
-        try {
-            // * 1.드라이버 로딩 
-            // * 드라이버 인터페이스를 구현한 클래스를 로딩
-            // * mysql, oracle 등 각 벤더사 마다 클래스 이름이 다르다.
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            System.out.println("jdbc 드라이버 로딩 성공");
-
-            // * 2. 연결하기
-            // * 드라이버 매니저에게 Connection 객체를 달라고 요청한다.
-            // * mysql은 "jdbc:mysql://localhost/사용할db이름" 이다.
-            // @param  getConnection(url, userName, password);
-            // @return Connection
-            con = DriverManager.getConnection(url, "root", "ansgud12");
-            System.out.println("mysql 접속 성공");
-        }
-        //예외처리
-        catch (ClassNotFoundException e) {
-            System.out.println("드라이버 로딩 실패");
-        } catch (SQLException e) {
-            System.out.println("에러 " + e);
-        }
-        //SQL Connection 리턴
-        return con;
-    }*/
 }
