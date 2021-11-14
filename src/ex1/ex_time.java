@@ -10,7 +10,7 @@ public class ex_time {
         System.out.println(today);
 
         TimeZone tz = TimeZone.getTimeZone("Asia/Seoul");
-        SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd kk:mm:ss");
         SimpleDateFormat time = new SimpleDateFormat("hh:mm:ss a");
         df.setTimeZone(tz);
         System.out.println("Date: " + df.format(today));
