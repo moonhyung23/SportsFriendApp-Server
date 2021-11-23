@@ -2,10 +2,8 @@ package ChatingServer;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.TimeZone;
+import java.util.*;
 
 public class DbManager {
     Connection con = null;
@@ -23,6 +21,7 @@ public class DbManager {
         System.out.println("mysql 접속 성공");
         // * 3.쿼리 수행을 위한 StateMent 객체 생성
         stmt = con.createStatement();
+
     }
 
     //연결 끊기.
@@ -46,6 +45,29 @@ public class DbManager {
         }
     }
 
+    //채팅 방 날짜 수정
+    public void update_chatRoom_editDate(ArrayList<String> List_room_infor) {
+        try {
+            Connection();
+            StringBuilder sb = new StringBuilder();
+            String sql = sb.append("UPDATE ChatRoom SET ")
+                    //날짜 수정
+                    .append("room_edit_date = '").append(getDate()).append("' ")
+                    //조건: 채팅 방 번호
+                    .append("WHERE room_uuid = '").append(List_room_infor.get(5)).append("'")
+                    .toString();
+            pstmt = con.prepareStatement(sql);
+            int update = pstmt.executeUpdate();
+            if (update != 0) {
+                System.out.println("채팅방 수정날짜 갱신성공!");
+            }
+            closeConnection();
+        } catch (SQLException e) {
+            System.out.println("채팅방 수정날짜 갱신 실패");
+
+        }
+    }
+
     // 채팅 방 추가
     public void Insert_chatRoom(ArrayList<String> List_chat) {
         try {
@@ -65,6 +87,8 @@ public class DbManager {
             // 2번 -> 채팅
             // 3번 -> 초대정보
             //서버에 채팅 방 정보(JSONArray) 보내기
+
+//            List_chat.get(7)
             Connection();
             String sql = "INSERT INTO ChatRoom  (" +
                     "attend_idx, " +
@@ -74,7 +98,8 @@ public class DbManager {
                     "room_chat_time, " +
                     "room_host_idx, " +
                     "room_uuid)" +
-                    " VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    "room_edit_date)" +
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             System.out.println("채팅방 추가 sql: " + sql);
             String[] ar_personCnt = List_chat.get(1).split("\\$");
             pstmt = con.prepareStatement(sql);
@@ -85,6 +110,7 @@ public class DbManager {
             pstmt.setString(5, ""); //최근에 채팅 보낸 시간
             pstmt.setInt(6, Integer.parseInt(List_chat.get(4))); //방장 인덱스 번호
             pstmt.setString(7, List_chat.get(5)); //방 번호
+            pstmt.setString(8, List_chat.get(7)); //채팅 방 만든 날짜(시간)
 
             int insert = pstmt.executeUpdate();
             if (insert == 1) {
@@ -98,10 +124,13 @@ public class DbManager {
     }
 
     //채팅 정보 추가
-    public String Insert_ChatInfor(ArrayList<String> List_chat, int viewType) {
+    //type 1번 -> 채팅방 + 채팅 추가
+    //type 2번 -> 채팅 추가
+    public String Insert_ChatInfor(ArrayList<String> List_chat, int viewType, int type) {
         //채팅방에 초대된 닉네임 (본인제외)
         StringBuilder inviteNick = new StringBuilder();
         String inviteNickLast = "";
+        String last_chat_idx = "";
         try {
             //* 채팅 정보 (@)
             // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
@@ -118,6 +147,7 @@ public class DbManager {
             // 1번 -> 채팅, 날짜, 초대정보
             // 2번 -> 채팅
             // 3번 -> 초대정보
+            // 4번 -> 이미지
             //서버에 채팅 방 정보(JSONArray) 보내기
             //12: 초대정보
             //Mysql 연결
@@ -143,10 +173,10 @@ public class DbManager {
                     "chat_room_uuid, " +
                     "viewType, " +
                     "invite_Infor, " +
-                    "status_idx)" +
+                    "rp_cnt)" +
                     " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             //채팅 방에 초대된 유저 idx
-            pstmt = con.prepareStatement(sql);
+            pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setInt(1, Integer.parseInt(List_chat.get(4))); //채팅 작성자 인덱스번호
             pstmt.setString(2, List_chat.get(3)); //채팅 내용
             pstmt.setString(3, List_chat.get(6)); //채팅 번호
@@ -154,27 +184,42 @@ public class DbManager {
             pstmt.setString(5, List_chat.get(5)); //채팅 방 번호
             pstmt.setInt(6, viewType); //채팅 뷰타입  번호
             pstmt.setString(7, inviteNickLast); //초대정보
-            pstmt.setInt(8, 2); //채팅 읽음 표시
+            //형변환 오류 예외처리
+            if (List_chat.get(13).equals("")) {
+                pstmt.setInt(8, 0); //채팅 읽은 사람 수
+            } else {
+                pstmt.setInt(8, Integer.parseInt(List_chat.get(13))); //채팅 읽은 사람 수
+            }
 
             int insert = pstmt.executeUpdate();
             if (insert == 1) {
                 System.out.println("채팅 정보 저장성공!");
+                rs = pstmt.getGeneratedKeys();
+                rs.next();
+                last_chat_idx = String.valueOf(rs.getInt(1));
             }
             closeConnection();
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        //초대정보 반환
-        return inviteNickLast;
+        //1번 -> 초대정보
+        //2번 -> 추가한 채팅의 인덱스 번호
+        if (type == 2) {
+            inviteNickLast = "초대정보없음";
+        }
+        return inviteNickLast + "$" + last_chat_idx;
     }
 
-    //초대 정보 추가
-    public void Insert_inviteInfor(ArrayList<String> List_chat, String invite_infor) {
+    //초대 정보 추가, 나간 사람 정보 추가
+    //exit_and_invite_infor -> 채팅방 나간사람, 초대한 사람 정보
+    public void Insert_exit_inviteInfor(ArrayList<String> List_chat, String exit_and_invite_infor) {
         try {
-
+            if (List_chat.get(13).equals("")) {
+                List_chat.set(13, "0");
+            }
             Connection();
-            System.out.println("insert_invite_infor: " + invite_infor);
+            System.out.println("insert_invite_infor: " + exit_and_invite_infor);
             String sql = "INSERT INTO Chat  (" +
                     "chat_user_idx, " +
                     "chat_content," +
@@ -183,18 +228,18 @@ public class DbManager {
                     "chat_room_uuid, " +
                     "viewType, " +
                     "invite_Infor, " +
-                    "status_idx)" +
+                    "rp_cnt)" +
                     " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             //채팅 방에 초대된 유저 idx
             pstmt = con.prepareStatement(sql);
             pstmt.setInt(1, Integer.parseInt(List_chat.get(4))); //채팅 작성자 인덱스번호
-            pstmt.setString(2, List_chat.get(3)); //채팅 내용
+            pstmt.setString(2, ""); //채팅 내용
             pstmt.setString(3, List_chat.get(6)); //채팅 번호
             pstmt.setString(4, List_chat.get(7)); //채팅 보낸 날짜(시간)
             pstmt.setString(5, List_chat.get(5)); //채팅 방 번호
             pstmt.setInt(6, 3); //채팅 뷰타입  번호
-            pstmt.setString(7, invite_infor); //초대정보
-            pstmt.setInt(8, 2); //채팅 읽음 표시
+            pstmt.setString(7, exit_and_invite_infor); //초대정보
+            pstmt.setInt(8, Integer.parseInt(List_chat.get(13))); //채팅 읽음 사람 수 표시
 
             int insert = pstmt.executeUpdate();
             if (insert == 1) {
@@ -236,7 +281,11 @@ public class DbManager {
                     .append("WHERE c1 = 1").toString();
 
             pstmt = con.prepareStatement(sql);
-            pstmt.executeUpdate();
+            int update = pstmt.executeUpdate();
+
+            if (update != 0) {
+                System.out.println("수정성공!");
+            }
             closeConnection();
         } catch (SQLException e) {
             // TODO Auto-generated catch block
@@ -244,7 +293,62 @@ public class DbManager {
         }
     }
 
+    //채팅 읽은 사람 수정
+    // -마지막으로 읽은 채팅의 인덱스보다 큰 채팅의 읽은 사람 수를 -1한다.
+    public int update_chat_rp(ArrayList<String> List_roomInfor) {
+        String sql = "";
+        pstmt = null;
+        //1번 -> 업데이트
+        //2번 -> 업데이트X
+        int update_flag = 0;
+        try {
+            StringBuilder sb = new StringBuilder();
+
+
+            //초대된 채팅방에 처음 입장해서 채팅을 읽은 경우
+            if (List_roomInfor.get(6).equals("null")) {
+                sql = sb.append("UPDATE Chat SET ")
+                        .append("rp_cnt = rp_cnt -1 ") //채팅 읽은 사람 수
+                        //조건 : 해당 채팅이 있는 채팅방
+                        .append("WHERE chat_room_uuid = '")
+                        .append(List_roomInfor.get(5))
+                        .append("'").toString();
+            }
+            //이미 초대된 방에 입장해서 채팅을 읽은 경우
+            else {
+                sql = sb.append("UPDATE Chat SET ")
+                        .append("rp_cnt = rp_cnt -1 ") //채팅 읽은 사람 수
+                        //조건 1 : 마지막으로 읽은 채팅 번호보다 큰 경우
+                        .append(" WHERE chat_room_uuid = '").append(List_roomInfor.get(5)).append("' ")
+                        //조건 2: 해당 채팅이 있는 채팅방
+                        .append("AND chat_id > ").append(List_roomInfor.get(6)).toString();
+
+
+            }
+            System.out.println("update_chatRoom SQL: " + sql);
+            Connection();
+            int update1 = stmt.executeUpdate(sql);
+            if (update1 != 0) {
+                //1번 -> 업데이트
+                update_flag = 1;
+                System.out.println("채팅 읽은 사람 수 수정");
+            } else {
+                //2번 -> 업데이트 x
+                update_flag = 2;
+                System.out.println("채팅 다 읽음.");
+            }
+            closeConnection();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+
+        return update_flag;
+    }
+
     //채팅 방 정보 수정
+    //-채팅방에 유저를 초대해서 채팅방 테이블을 수정해줌.
     public String update_chatRoom(String attend_idx,
                                   String room_title,
                                   String roomIdx,
@@ -289,34 +393,6 @@ public class DbManager {
         return invite_Infor;
     }
 
-    //채팅 방 참석자 중복 체크
-    public String select_chatRoom_RedunCheck(String[] ar_invite_idx) {
-        String readValue = "방생성가능";
-        try {
-            Connection();
-            //모든 채팅방의 참여자 idx번호 조회
-            String sql = "SELECT attend_idx, room_uuid FROM ChatRoom";
-            //참여자 idx 번호 로우 조회
-            rs = stmt.executeQuery(sql);
-            //로우의 개수만큼 반복
-            while (rs.next()) {
-                String[] ar_attend_idx = rs.getString(1).split("\\$");
-
-                //두 배열이 서로 같은 경우
-                // -참석자가 중복된 방이 있는 경우
-                if (Arrays.equals(parseIntArray(ar_invite_idx), parseIntArray(ar_attend_idx))) {
-                    //중복된 방의 번호 변수에 저장
-                    readValue = rs.getString(2);
-                }
-
-            }
-            closeConnection();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return readValue;
-    }
 
     //채팅 방 참여자 정보 조회
     public String select_Invite_idx(String room_idx) {
@@ -342,7 +418,11 @@ public class DbManager {
 
     //채팅방 제목을 반환하는 메서드
     // -채팅방 제목 -> 참여한 유저 닉네임
-    public String select_nickname(String chatRoomUserIdx) {
+    // -flag_close
+    // 1번 -> 종료, 2번 -> 종료X
+    // 같은 DBmanager클래스 안에서 메서드 사용 시 db close가 먼저 되서 다른 db작업이
+    // 동작하지 않는 문제를 해결하기 위해 만듬
+    public String select_nickname(String chatRoomUserIdx, int flag_close) {
         try {
             //채팅방
             StringBuilder sb_roomTitle = new StringBuilder();
@@ -362,9 +442,12 @@ public class DbManager {
             while (rs.next()) {
                 sb_roomTitle.append(rs.getString(1)).append("$");
             }
-            closeConnection();
-            //마지막 문자열 ("$")제거
+            //1번일 때만 연결종료
+            if (flag_close == 1) {
+                closeConnection();
+            }
             System.out.println("리턴할 방제목:  " + sb_roomTitle.substring(0, sb_roomTitle.length() - 1));
+            //마지막 문자열 ("$")제거
             return sb_roomTitle.substring(0, sb_roomTitle.length() - 1);
         } catch (SQLException e) {
             // TODO Auto-generated catch block
@@ -374,63 +457,128 @@ public class DbManager {
     }
 
 
-    //채팅방을 나갈 채팅방을 삭제하는 메서드
-    public void delete_chatRoom(ArrayList<String> List_exitInfor) {
+    public int select_autoIncrement() {
+        int auto_increment = 0;
+        try {
+            //채팅방
+            StringBuilder sb_roomTitle = new StringBuilder();
+            Connection();
+            StringBuilder sb = new StringBuilder();
+            String sql = sb.append("SELECT LAST_INSERT_ID()").toString();
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                auto_increment = rs.getInt(1);
+            }
+
+            //마지막 문자열 ("$")제거
+            closeConnection();
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println("LAST_INSERT_ID:  " + auto_increment);
+        return auto_increment;
+    }
+
+
+    //채팅방을 삭제하는 메서드
+    // -본인이 채팅방을 나간 경우
+    public String delete_chatRoom(ArrayList<String> List_exitInfor) {
+        String result = "";
         //db 연결
         try {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb_sql = new StringBuilder();
             //db 연결
             Connection();
-         /*   String sql = "DELETE FROM ChatRoom WHERE room_uuid = " + room_idx;
-            pstmt = con.prepareStatement(sql);
-            int insert = pstmt.executeUpdate();
-            if (insert == 1) {
-                System.out.println("채팅 정보 수정성공!");
-            }
-            closeConnection();*/
 
+
+            sb_sql.append("DELETE FROM a, b USING ChatRoom AS a ")
+                    .append("INNER JOIN Chat AS b ")
+                    .append("ON a.room_uuid = b.chat_room_uuid ")
+                    .append("WHERE a.room_uuid = ")
+                    .append("'").append(List_exitInfor.get(5)).append("'");
+            pstmt = con.prepareStatement(sb_sql.toString());
+            System.out.println("delete_chatRoom_sb_sql: " + sb_sql);
+            int insert = pstmt.executeUpdate();
+            if (insert != 0) {
+                result = "삭제성공";
+                System.out.println("채팅방, 채팅 삭제 성공!");
+                List_exitInfor.set(3, result); //db 작업 성공
+
+            }
+            closeConnection();
         } catch (SQLException e) {
 
         }
+        return result;
     }
 
     //채팅방을 나갈 떄 나간사람의 닉네임, 인덱스 정보를 테이블에서 지우는 메서드
-    public void update_chatRoom_exit(ArrayList<String> List_exitInfor) {
+    //-다른 사람이 내가 참여한 채팅방에 나간 경우 사용
+    public String update_chatRoom_exit(ArrayList<String> List_exitInfor, List<String> List_attend_idx) {
+        String result = "";
         try {
             StringBuilder sb = new StringBuilder();
+            StringBuilder sb_attend_idx = new StringBuilder();
             Connection();
-                /*    //db 연결
-    //수정할 정보
+            //채팅방 참여자 리스트 조회
+            for (int i = 0; i < List_attend_idx.size(); i++) {
+                //채팅 방 참여자 리스트에서 나의  idx를 찾는다.
+                if (List_attend_idx.get(i).equals(List_exitInfor.get(4))) {
+                    //채팅 방 나가는 사람 idx 참여자 리스트에서 지우기
+                    List_attend_idx.remove(i);
+                }
+            }
+
+            //채팅방 참여자 idx 번호 조회(나간사람 제외)
+            for (String list_attend_idx : List_attend_idx) {
+                //채팅방에 나간 사람을 제외한 채팅방 참여자의 idx 번호에 각각 "$" 추가
+                sb_attend_idx.append(list_attend_idx).append("$");
+            }
+
+            //채팅방 참여자 idx 번호
+            String attend_idx_last = sb_attend_idx.substring(0, sb_attend_idx.length() - 1);
+
+
+            //db 연결
+            //수정할 정보
             // -참석자 idx
             // -방제목
+            // -인원 수
             String sql = sb.append("UPDATE ChatRoom SET ")
-                    .append("attend_idx = '").append(attend_idx).append("', ") //채팅방 참여자 idx
-                    .append("room_person_cnt = ").append(ar_attend_idx.length).append(", ") //인원 수
-                    .append("room_title = '").append(room_title).append("'") //제목
-                    .append("WHERE room_uuid = '").append(roomIdx).append("'").toString(); //방번호
+                    .append("attend_idx = '").append(attend_idx_last).append("', ") //채팅방 참여자 idx
+                    .append("room_person_cnt = ").append(List_attend_idx.size()).append(", ") //채팅 방 참여 인원 수
+                    .append("room_title = '").append(select_nickname(attend_idx_last, 2)).append("' ") //제목
+                    .append("WHERE room_uuid = '").append(List_exitInfor.get(5)).append("'").toString(); //조건 방번호
             System.out.println("update_chatRoom SQL: " + sql);
             pstmt = con.prepareStatement(sql);
             int insert = pstmt.executeUpdate();
             if (insert == 1) {
                 System.out.println("채팅 정보 수정성공!");
+                result = "수정성공";
+                List_exitInfor.set(1, attend_idx_last); //채팅 방 참여자 idx 수정
+                List_exitInfor.set(3, result); //db 작업 성공
+                List_exitInfor.set(9, select_nickname(attend_idx_last, 2)); //채팅방 방 제목 수정
             }
-            closeConnection();*/
+            closeConnection();
 
 
         } catch (SQLException e) {
 
         }
+        return result;
     }
 
     //채팅방 나가기 정보 쿼리
-    public String query_ChatRoomExit(int chatRoomCnt, ArrayList<String> List_exitInfor) {
+    public String query_ChatRoomExit(List<String> List_attend_idx, ArrayList<String> List_exitInfor) {
+        String result = "";
         //db 연결
         //채팅 방 인원 수가 1명인 경우
-        if (chatRoomCnt == 1) {
+        if (List_attend_idx.size() == 1) {
             //1.삭제
             //채팅 방 삭제
             //채팅 방 채팅내역 삭제
-            delete_chatRoom(List_exitInfor);
+            result = delete_chatRoom(List_exitInfor);
         }
         //채팅 방 인원 수가 1명이 아닌 경우
         // -2명 이상
@@ -438,10 +586,11 @@ public class DbManager {
             //2.업데이트
             //나가는 유저 idx 지우기
             //나가는 유저 닉네임 지우기
-            update_chatRoom_exit(List_exitInfor);
+            result = update_chatRoom_exit(List_exitInfor, List_attend_idx);
         }
 
-        return "";
+
+        return result;
     }
 
 
