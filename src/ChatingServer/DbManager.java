@@ -97,7 +97,7 @@ public class DbManager {
                     "room_created_date, " +
                     "room_chat_time, " +
                     "room_host_idx, " +
-                    "room_uuid)" +
+                    "room_uuid," +
                     "room_edit_date)" +
                     " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             System.out.println("채팅방 추가 sql: " + sql);
