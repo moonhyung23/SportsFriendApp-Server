@@ -52,7 +52,7 @@ public class DbManager {
             StringBuilder sb = new StringBuilder();
             String sql = sb.append("UPDATE ChatRoom SET ")
                     //날짜 수정
-                    .append("room_edit_date = '").append(getDate()).append("' ")
+                    .append("room_edit_date = '").append(List_room_infor.get(7)).append("' ")
                     //조건: 채팅 방 번호
                     .append("WHERE room_uuid = '").append(List_room_infor.get(5)).append("'")
                     .toString();
@@ -71,6 +71,7 @@ public class DbManager {
     // 채팅 방 추가
     public void Insert_chatRoom(ArrayList<String> List_chat) {
         try {
+            //* 채팅방 List 정보 (@)
             // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
             // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
             // 4: 보낸사람(방장) idx
@@ -83,9 +84,13 @@ public class DbManager {
             // 11: 뷰타입번호
             // 12: 초대정보
             //채팅 뷰타입 번호
-            // 1번 -> 채팅, 날짜, 초대정보
-            // 2번 -> 채팅
-            // 3번 -> 초대정보
+            // -1번 -> 채팅, 날짜, 초대정보
+            // -2번 -> 채팅
+            // -3번 -> 초대정보
+            // 13: 채팅 읽은 사람 수
+            // 14: 채팅 idx 번호
+            // 15: 채팅방 이미지 url
+
             //서버에 채팅 방 정보(JSONArray) 보내기
 
 //            List_chat.get(7)
@@ -98,8 +103,9 @@ public class DbManager {
                     "room_chat_time, " +
                     "room_host_idx, " +
                     "room_uuid," +
+                    "room_img_url," +
                     "room_edit_date)" +
-                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             System.out.println("채팅방 추가 sql: " + sql);
             String[] ar_personCnt = List_chat.get(1).split("\\$");
             pstmt = con.prepareStatement(sql);
@@ -110,8 +116,8 @@ public class DbManager {
             pstmt.setString(5, ""); //최근에 채팅 보낸 시간
             pstmt.setInt(6, Integer.parseInt(List_chat.get(4))); //방장 인덱스 번호
             pstmt.setString(7, List_chat.get(5)); //방 번호
-            pstmt.setString(8, List_chat.get(7)); //채팅 방 만든 날짜(시간)
-
+            pstmt.setString(8, List_chat.get(15)); //채팅 방 이미지 url
+            pstmt.setString(9, List_chat.get(7)); //채팅 방 만든 날짜(시간)
             int insert = pstmt.executeUpdate();
             if (insert == 1) {
                 System.out.println("채팅 방 정보 저장성공!");
@@ -322,7 +328,6 @@ public class DbManager {
                         .append(" WHERE chat_room_uuid = '").append(List_roomInfor.get(5)).append("' ")
                         //조건 2: 해당 채팅이 있는 채팅방
                         .append("AND chat_id > ").append(List_roomInfor.get(6)).toString();
-
 
             }
             System.out.println("update_chatRoom SQL: " + sql);

@@ -161,6 +161,9 @@ public class SocketThread extends Thread {
                     if (rp_Cnt.equals("0")) {
                         rp_Cnt = "";
                     }
+                    System.out.println("List_roomInfor.get(13):" + List_roomInfor.get(13));
+                    System.out.println("con_SocketCnt:" + String.valueOf(con_SocketCnt));
+                    System.out.println("rp_Cnt:" + rp_Cnt);
                     //채팅 읽은 사람 수 리스트에 저장
                     List_roomInfor.set(13, rp_Cnt);
 
@@ -194,8 +197,11 @@ public class SocketThread extends Thread {
                     broadCast(Send_jsonArray_roomInfor(List_roomInfor, inviteInfor), invite_idx);
                 }
 
-                //status_num -> 3번 채팅 방 나가기
+                //status_num -> 3번 채팅 방 나가기 (완전히 나가기)
                 else if (Integer.parseInt(List_roomInfor.get(0)) == 3) {
+                    //입장한 채팅 방 번호 초기화
+                    enter_room_uuid = "";
+
                     //채팅방에 참여한 사람의 idx 번호 배열
                     String[] ar_invite_user_idx = List_roomInfor.get(1).split("\\$");
 
@@ -214,7 +220,6 @@ public class SocketThread extends Thread {
                     } else if (result.equals("삭제성공")) {
                         broadCast(Send_jsonArray_roomInfor(List_roomInfor, ""), ar_invite_user_idx);
                     }
-
                 }
 
                 //status_num -> 4번 채팅 방 초대
@@ -260,6 +265,8 @@ public class SocketThread extends Thread {
                     //현재 입장한 채팅 방 번호(uuid) 저장
                     enter_room_uuid = List_roomInfor.get(5);
 
+                    int con_SocketCnt = get_Connect_SocketUserCnt(List_roomInfor.get(5));
+                    System.out.println("con_SocketCnt:" + con_SocketCnt);
                     //1번 -> 업데이트 (새로운 채팅 읽음)
                     //2번 -> 업데이트 X  (이미 읽은 채팅)
                     update_flag = dbManager.update_chat_rp(List_roomInfor);
@@ -286,9 +293,7 @@ public class SocketThread extends Thread {
                 //status_num -> 6번 채팅 방 나가기(완전히 X)
                 else if (Integer.parseInt(List_roomInfor.get(0)) == 6) {
                     //현재 입장한 채팅 방 번호(uuid) 초기화
-                    System.out.println("나가기전 방번호: " + enter_room_uuid);
                     enter_room_uuid = "";
-                    System.out.println("채팅방 나가기 완료 현재 방 번호: " + enter_room_uuid);
                 }
             }
         } catch (Exception e) {
@@ -301,7 +306,11 @@ public class SocketThread extends Thread {
         int con_count = 0;
         for (int i = 0; i < MainServer.List_ConSocket.size(); i++) {
             SocketThread th_socket = MainServer.List_ConSocket.get(i);
+            System.out.println("th_socket.enter_room_uuid: " + th_socket.enter_room_uuid);
+            System.out.println("enter_room_uuid: " + enter_room_uuid);
+            //채팅방에 참여한 유저의 인원 수를 구한다.
             if (th_socket.enter_room_uuid.equals(enter_room_uuid)) {
+                //채팅 방 번호가 있을 때만
                 con_count += 1;
             }
         }
@@ -337,6 +346,7 @@ public class SocketThread extends Thread {
                 String invite_Infor = jobject.getString("invite_Infor"); //채팅 정보
                 String chat_rp_cnt = jobject.getString("chat_rp_cnt"); //채팅 읽은 사람 수
                 String chat_id = jobject.getString("chat_id"); //채팅 읽은 사람 수
+                String chatRoom_imgUrl = jobject.getString("chatRoom_imgUrl"); //채팅 읽은 사람 수
 
                 // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
                 // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
@@ -348,13 +358,14 @@ public class SocketThread extends Thread {
                 // 9: 채팅 방 제목
                 // 10: 프로필 사진
                 // 11: 뷰타입번호
+                // -1번 -> 채팅, 날짜, 초대정보
+                // -2번 -> 채팅
+                // -3번 -> 초대정보
                 // 12: 초대정보
                 //채팅 뷰타입 번호
-                // 1번 -> 채팅, 날짜, 초대정보
-                // 2번 -> 채팅
-                // 3번 -> 초대정보
                 // 13: 채팅 읽은 사람 수
                 // 14: 채팅 idx 번호
+                // 15: 채팅방 이미지 url
 
                 //json parsing한 채팅방 정보 리스트에 저장.
                 List_roomInfor.add(0, status_num);
@@ -372,6 +383,7 @@ public class SocketThread extends Thread {
                 List_roomInfor.add(12, invite_Infor);
                 List_roomInfor.add(13, chat_rp_cnt);
                 List_roomInfor.add(14, chat_id);
+                List_roomInfor.add(15, chatRoom_imgUrl);
             }
         } catch (JSONException e) {
             //json 형식 에러
@@ -422,6 +434,7 @@ public class SocketThread extends Thread {
             jobject.put("invite_Infor", inviteInfor); //초대정보
             jobject.put("chat_rp_cnt", List_roomInfor.get(13)); //채팅 읽은 사람 수
             jobject.put("chat_id", List_roomInfor.get(14)); //채팅 idx 번호
+            jobject.put("chatRoom_imgUrl", List_roomInfor.get(15)); //채팅방 이미지 url
             jarray.put(jobject);
         } catch (JSONException e) {
             System.out.println("서버에서 데이터 보낼 때, JSON 변환 오류");
