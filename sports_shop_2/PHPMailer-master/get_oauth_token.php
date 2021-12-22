@@ -24,10 +24,10 @@
  * as [https/http]://<yourdomain>/<folder>/get_oauth_token.php
  * e.g.: http://localhost/phpmailer/get_oauth_token.php
  * * Ensure dependencies are installed with 'composer install'
- * * Set up an app in your Google/Yahoo/Microsoft account
- * * Set the script address as the app's redirect URL
+ * * Set up an server in your Google/Yahoo/Microsoft account
+ * * Set the script address as the server's redirect URL
  * If no refresh token is obtained when running this file,
- * revoke access to your app and run the script again.
+ * revoke access to your server and run the script again.
  */
 
 namespace PHPMailer\PHPMailer;
@@ -74,7 +74,7 @@ if (!in_array($providerName, ['Google', 'Microsoft', 'Yahoo'])) {
     exit('Only Google, Microsoft and Yahoo OAuth2 providers are currently supported in this script.');
 }
 
-//These details are obtained by setting up an app in the Google developer console,
+//These details are obtained by setting up an server in the Google developer console,
 //or whichever provider you're using.
 $clientId = 'RANDOMCHARS-----duv1n2.apps.googleusercontent.com';
 $clientSecret = 'RANDOMCHARS-----lGyjPcRtvP';

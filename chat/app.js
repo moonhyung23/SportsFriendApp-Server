@@ -1,4 +1,4 @@
-/* socket\app.js */
+/* socket\server.js */
 
 const express = require('express');
 const app = express();
