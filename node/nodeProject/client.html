@@ -24,13 +24,22 @@
     <script src="//code.jquery.com/jquery-1.11.1.js"></script>
     <script>
         var socket = io();
+        //submit 버튼을 누르면 실행되는 함수
         $('#chat').on('submit', function(e){
+            //'send message' 함수
+            //emit으로 서버에 보낸 메시지를 전달한다.
+            //val()입력
             socket.emit('send message', $('#name').val(), $('#message').val());
+            //입력한 변수 초기화
             $('#message').val('');
+            //입력한 후에 계속 입력할 수 있게 입력란으로 커서 고정
             $('#message').focus();
+            //이벤트 종료
             e.preventDefault();
         });
+        // 'receive message'의 함수가 오면 실행되는 메서드
         socket.on('receive message', function(msg){
+            //append(): 마지막에 추가
             $('#chatLog').append(msg+'\n');
             $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
         });
