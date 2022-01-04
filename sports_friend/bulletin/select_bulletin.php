@@ -25,7 +25,7 @@
   $sql_select = "SELECT * FROM Bulletin 
   WHERE bltn_addr = '$live_addr'
   OR bltn_addr = '$interest_addr'
-  ORDER BY bltn_idx ASC"; 
+  ORDER BY bltn_idx DESC";
   // 사용자가 선택한 동네에 해당하는 모집글 조회
   // 최근에 작성한 순으로 조회
   // 페이징해서 한번에 10개씩 조회
@@ -38,7 +38,7 @@
   else if($select_flag == 2 ){
   $sql_select = "SELECT * FROM Bulletin 
   WHERE bltn_addr = '$live_addr'
-  ORDER BY bltn_idx ASC";
+  ORDER BY bltn_idx DESC";
   $result_select = mysqli_query($con, $sql_select); 
   //거주지역 모집 글 조회
   select_Bltn($result_select, "거주지역모집글조회");
@@ -48,7 +48,7 @@
   else if($select_flag == 3 ){
   $sql_select = "SELECT * FROM Bulletin 
   WHERE bltn_addr = '$interest_addr'
-  ORDER BY bltn_idx ASC"; 
+  ORDER BY bltn_idx DESC";
   $result_select = mysqli_query($con, $sql_select);
   //관심지역 모집 글 조회
   select_Bltn($result_select, "관심지역모집글조회");

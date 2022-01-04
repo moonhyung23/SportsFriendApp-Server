@@ -33,12 +33,12 @@ $certified_num = sprintf("%06d", rand(000000,999999));
     $mail -> Host = "smtp.naver.com";               // 네이버의 smtp 서버
     $mail -> SMTPAuth = true;                         // SMTP 인증을 사용함
     $mail -> Username = "dlansgud613@naver.com";    // 메일 계정 (지메일일경우 지메일 계정)
-    $mail -> Password = "qoxmf102369@";                  // 메일 비밀번호
+    $mail -> Password = "aver$102369M";                  // 메일 비밀번호
     $mail -> SMTPSecure = "ssl";                       // SSL을 사용함
     $mail -> Port = 465;                                  // email 보낼때 사용할 포트를 지정
     $mail -> CharSet = "utf-8"; // 문자셋 인코딩
     // 보내는 메일
-    $mail -> setFrom("dlansgud613@naver.com", "임시비밀번호 발송");
+    $mail -> setFrom("dlansgud613@naver.com", "이메일 인증번호 발송");
     // 받는 메일
     $mail -> addAddress("$email", "DDDD");
     // 메일 내용

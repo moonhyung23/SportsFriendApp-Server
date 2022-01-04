@@ -26,14 +26,14 @@ io.on('connection', socket => {
     console.log(`Socket connected : ${socket.id}`)
     //방 입장
     socket.on('join_room', data => {
+        console.log("data.roomName: " + data.roomName);
         //user[room]에는 room에 있는 사용자들이 배열 형태로 저장된다.
         //room이 존재하면
-        console.log("data.roomName: " + data.roomName);
         if (users[data.roomName]) {
             //방에 입장한 사람의 수
             const length = users[data.roomName].length;
             //최대 인원을 충족시켰으면 더 이상 접속 불가
-            if (length === 10) {
+            if (length === maximum) {
                 console.log("방 정원초과");
                 //방 인원이 가득찬 경우
                 socket.to(socket.id).emit('room_full');
@@ -71,29 +71,29 @@ io.on('connection', socket => {
         // user array -> 본인을 제외한 본인이 속한 방의 유저 socket.id
         io.sockets.to(socket.id).emit('all_users', usersInThisRoom);
     });
-
     // 다른 user들에게 offer를 보냄 (자신의 RTCSessionDescription)
     socket.on('offer', sdp => {
-        console.log('offer: ' + socket.id);
         // room에는 두 명 밖에 없으므로 broadcast 사용해서 전달
         // 여러 명 있는 처리는 다음 포스트 1:N에서...
         socket.broadcast.emit('getOffer', sdp);
+        console.log('offer: 상대방에게 offer 전달완료');
     });
 
     // offer를 보낸 user에게 answer을 보냄 (자신의 RTCSessionDescription)
     socket.on('answer', sdp => {
-        console.log('answer: ' + socket.id);
         // room에는 두 명 밖에 없으므로 broadcast 사용해서 전달
         // 여러 명 있는 처리는 다음 포스트 1:N에서...
         socket.broadcast.emit('getAnswer', sdp);
+        console.log('answer: 상대방에게 answer 전달완료 ');
     });
 
     // 자신의 ICECandidate 정보를 signal(offer 또는 answer)을 주고 받은 상대에게 전달
     socket.on('candidate', candidate => {
-        console.log('candidate: ' + socket.id);
         // room에는 두 명 밖에 없으므로 broadcast 사용해서 전달
         // 여러 명 있는 처리는 다음 포스트 1:N에서...
         socket.broadcast.emit('getCandidate', candidate);
+        console.log('ICE후보 전달완료');
+
     })
 
     // user가 연결이 끊겼을 때 처리

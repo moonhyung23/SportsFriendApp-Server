@@ -214,6 +214,7 @@ public class DbManager {
         if (type == 2) {
             inviteNickLast = "초대정보없음";
         }
+        //초대한 유저 닉네임 + "$" + 마지막으로 추가한 채팅의 인덱스 번호
         return inviteNickLast + "$" + last_chat_idx;
     }
 

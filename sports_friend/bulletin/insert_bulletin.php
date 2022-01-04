@@ -28,6 +28,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
       //서버에 저장한 이미지 경로 배열
       $ar_imageUri = array();
      
+      //클라이언트에서 가져온 이미지를 담는 배열
       $ar_image = array();
        for($i=0; $i < $filltered['image_cnt']; $i++) {
        // 7)업로드 해야하는 이미지 받기

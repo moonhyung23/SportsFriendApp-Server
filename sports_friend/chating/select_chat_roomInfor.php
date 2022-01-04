@@ -1,5 +1,5 @@
 <?php 
-// ! 채팅 방  정보  조회
+//! 주의 -> 사용하지 않는 PHP 파일 
 if(($_SERVER['REQUEST_METHOD'] == 'POST' )){
     include_once "../dbcon.php";
     
@@ -7,7 +7,13 @@ if(($_SERVER['REQUEST_METHOD'] == 'POST' )){
     $chat_room_idx = $_POST['chat_room_idx']; 
     
     //1)테이블의 모든 행을 갖고온다.
-    $sql_select = "SELECT * FROM ChatRoom WHERE room_idx = $chat_room_idx "; 
+    $sql_select = "SELECT *  
+    FROM Chat AS a
+    INNER JOIN ChatRoom AS b
+    ON a.chat_room_uuid = b.room_uuid
+    WHERE a.chat_room_uuid = $chat_room_idx";
+    
+    
     $result_select = mysqli_query($con, $sql_select);
     
     $ar_chatRoomInfor = array();

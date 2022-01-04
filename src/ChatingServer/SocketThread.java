@@ -150,8 +150,6 @@ public class SocketThread extends Thread {
                     String last_chat_idx = "";
                     String returnValue = "";
                     String inviteInfor = "";
-
-
                     //현재 채팅방에 입장 중인 유저 소켓의 개수를 구한다.
                     int con_SocketCnt = get_Connect_SocketUserCnt(List_roomInfor.get(5));
                     //채팅 읽은 사람 수
@@ -173,25 +171,25 @@ public class SocketThread extends Thread {
                     // 채팅정보 Db 테이블에 저장
                     if (List_roomInfor.get(0).equals("2")) {
                         //viewType 2번 -> 채팅
+                        //초대하지 않은 경우 -> "초대정보 없음 반환"
                         returnValue = dbManager.Insert_ChatInfor(List_roomInfor, 2, 2);
                     } else if (List_roomInfor.get(0).equals("7")) {
                         //viewType 4번 -> 이미지
                         returnValue = dbManager.Insert_ChatInfor(List_roomInfor, 4, 2);
                     }
 
-                    //채팅 방 날짜 수정
+                    // -최근 채팅 보낸 날짜 수정
                     dbManager.update_chatRoom_editDate(List_roomInfor);
                     String[] ar_return = returnValue.split("\\$");
                     //초대정보
                     inviteInfor = ar_return[0];
-                    //마지막으로 추가한 인덱스 번호
+                    //마지막으로 추가한 채팅의 인덱스 번호
                     last_chat_idx = ar_return[1];
 
                     //현재 추가한 로우의 인덱스번호
                     List_roomInfor.set(14, String.valueOf(last_chat_idx));
 
-
-                    //채팅 참여자 인덱스 번호 배열로 변환
+                    //채팅방 참여자 인덱스 번호 배열로 변환
                     String[] invite_idx = dbManager.select_Invite_idx(List_roomInfor.get(5)).split("\\$");
                     //채팅방에 참여한 사람에게 채팅 보내주기.
                     broadCast(Send_jsonArray_roomInfor(List_roomInfor, inviteInfor), invite_idx);
@@ -295,6 +293,12 @@ public class SocketThread extends Thread {
                     //현재 입장한 채팅 방 번호(uuid) 초기화
                     enter_room_uuid = "";
                 }
+
+                //status_num -> 8번 화상통화 신청
+                else if (Integer.parseInt(List_roomInfor.get(0)) == 8) {
+
+                }
+
             }
         } catch (Exception e) {
             e.printStackTrace(); // 예외처리

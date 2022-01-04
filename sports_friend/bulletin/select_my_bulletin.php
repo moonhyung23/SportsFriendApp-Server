@@ -10,7 +10,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 // 내가 작성한 모집 글 정보만 모두 갖고온다.
 // bltn_flag번호가 0번인 것만 갖고온다.
 /* bltn_flag -> 0번: 기본, 1번: 삭제 */
- $sql_select = "SELECT * FROM Bulletin WHERE bltn_flag = 0 && user_idx = $user_idx"; 
+ $sql_select = "SELECT * FROM Bulletin WHERE bltn_flag = 0 && user_idx = '$user_idx'
+  ORDER BY bltn_idx ASC";
  $result_select = mysqli_query($con, $sql_select);
  
  $ar_bulletin = array();

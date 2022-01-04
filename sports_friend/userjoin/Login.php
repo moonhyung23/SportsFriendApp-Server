@@ -37,7 +37,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
       */
       //기본 로그인 (0번)
       if($row['user_status_num'] == 0){
-            echo "{$row['user_idx']}";
+            echo "{$row['user_idx']}@{$row['user_nickname']}@{$row['user_img_url']}";
       }
       //비밀번호 찾기 후 로그인 (1번)
       else if($row['user_status_num'] == 1){
