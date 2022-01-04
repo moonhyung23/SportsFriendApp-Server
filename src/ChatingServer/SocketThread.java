@@ -14,7 +14,7 @@ import java.util.List;
 /* 채팅 서버 에코 스레드
  *  -소켓에 연결된 유저에게 메세지를 보내준다.
  *  */
-//test
+//testttt
 public class SocketThread extends Thread {
     Socket socket;
     String user_idx;
