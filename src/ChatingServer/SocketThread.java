@@ -301,7 +301,6 @@ public class SocketThread extends Thread {
 
             }
         } catch (Exception e) {
-            e.printStackTrace(); // 예외처리
         }
     }
 
