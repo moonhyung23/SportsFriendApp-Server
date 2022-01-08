@@ -71,26 +71,10 @@ public class SocketThread extends Thread {
                     identify_flag = true;
                     continue;
                 }
-
-                //채팅 방정보: roominfor =
-                //* 채팅 정보 (@)
-                // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
-                // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
-                // 4: 보낸사람(방장) idx
-                // 5: 채팅  방 idx 번호
-                // 6: 채팅 idx 번호
-                // 7: 채팅 보낸 날짜(시간)
-                // 8: 채팅 보낸 사람 닉네임
-                // 9: 채팅 방 제목
-                // 10: 프로필 사진
-                // 11: 뷰타입번호
-                // 12: 초대정보
-
                 System.out.println("List_변환전 JSON정보 : " + readValue);
                 //Json으로 온 채팅 정보를 List<String>로 변환해주는 메서드
                 // - JSON -> List
                 Set_List_roomInfor(List_roomInfor, readValue);
-
                 //채팅 방 정보
                 //1번 -> JSON 형식 에러인 경우
                 if (jsonError_flag == 1) {
@@ -178,7 +162,7 @@ public class SocketThread extends Thread {
                         //viewType 4번 -> 이미지
                         returnValue = dbManager.Insert_ChatInfor(List_roomInfor, 4, 2);
                     }
-
+                    /*AAAAA*/
                     // -최근 채팅 보낸 날짜 수정
                     dbManager.update_chatRoom_editDate(List_roomInfor);
                     String[] ar_return = returnValue.split("\\$");
@@ -187,10 +171,10 @@ public class SocketThread extends Thread {
                     //마지막으로 추가한 채팅의 인덱스 번호
                     last_chat_idx = ar_return[1];
 
-                    //현재 추가한 로우의 인덱스번호
+                    //현재 DB에 추가한 채팅의 마지막 인덱스번호
                     List_roomInfor.set(14, String.valueOf(last_chat_idx));
 
-                    //채팅방 참여자 인덱스 번호 배열로 변환
+                    //방번호(5)를 이용해서 DB에서 채팅방의 참여한 유저의 idx 번호를 조회한다.
                     String[] invite_idx = dbManager.select_Invite_idx(List_roomInfor.get(5)).split("\\$");
                     //채팅방에 참여한 사람에게 채팅 보내주기.
                     broadCast(Send_jsonArray_roomInfor(List_roomInfor, inviteInfor), invite_idx);
@@ -203,7 +187,6 @@ public class SocketThread extends Thread {
 
                     //채팅방에 참여한 사람의 idx 번호 배열
                     String[] ar_invite_user_idx = List_roomInfor.get(1).split("\\$");
-
                     //채팅방에 참여한 유저 idx 배열
                     List<String> list_attend_user_idx = new ArrayList(Arrays.asList(List_roomInfor.get(1).split("\\$")));
                     String result = dbManager.query_ChatRoomExit(list_attend_user_idx, List_roomInfor);
@@ -297,9 +280,43 @@ public class SocketThread extends Thread {
 
                 //status_num -> 8번 화상통화 신청
                 else if (Integer.parseInt(List_roomInfor.get(0)) == 8) {
-
+                    //마지막으로 추가한 채팅인덱스번호(PK)
+                    String last_chat_idx = "";
+                    //채팅 정보 저장 시 반환되는 문자열
+                    //"초대정보$채팅인덱스 번호"
+                    String returnValue = "";
+                    //초대정보
+                    String inviteInfor = "";
+                    //현재 채팅방에 입장 중인 유저 소켓의 개수를 구한다.
+                    int con_SocketCnt = get_Connect_SocketUserCnt(List_roomInfor.get(5));
+                    //채팅 읽지 않은 사람 수
+                    // -현재 읽은 사람 수  - 현재 소켓에 연결된 유저(채팅방 입장)
+                    // -본인이 제외되어서 -1을 했음.
+                    String rp_Cnt = String.valueOf(Integer.parseInt(List_roomInfor.get(13)) - (con_SocketCnt - 1));
+                    if (rp_Cnt.equals("0")) {
+                        rp_Cnt = "";
+                    }
+                    System.out.println("305번줄_status_num(8) 채팅방의 입장중인 유저 명 수: " + String.valueOf(con_SocketCnt));
+                    System.out.println("306번줄_status_num(8) 채팅읽지 않은 사람 수: " + rp_Cnt);
+                    //채팅 읽은 사람 수 리스트에 저장
+                    List_roomInfor.set(13, rp_Cnt);
+                    //DB에 채팅 정보 저장
+                    returnValue = dbManager.Insert_ChatInfor(List_roomInfor, 2, 2);
+                    /*BBBBB*/
+                    // -최근 채팅 보낸 날짜 DB에서 수정
+                    dbManager.update_chatRoom_editDate(List_roomInfor);
+                    String[] ar_return = returnValue.split("\\$");
+                    //초대정보
+                    inviteInfor = ar_return[0];
+                    //마지막으로 추가한 채팅의 인덱스 번호
+                    last_chat_idx = ar_return[1];
+                    //현재 DB에 추가한 채팅의 마지막 인덱스번호
+                    List_roomInfor.set(14, String.valueOf(last_chat_idx));
+                    //방번호(5)를 이용해서 DB에서 채팅방의 참여한 유저의 idx 번호를 조회한다.
+                    String[] invite_idx = dbManager.select_Invite_idx(List_roomInfor.get(5)).split("\\$");
+                    //채팅방에 참여한 사람에게 채팅 보내주기.
+                    broadCast(Send_jsonArray_roomInfor(List_roomInfor, inviteInfor), invite_idx);
                 }
-
             }
         } catch (Exception e) {
         }
@@ -351,7 +368,7 @@ public class SocketThread extends Thread {
                 String chat_rp_cnt = jobject.getString("chat_rp_cnt"); //채팅 읽은 사람 수
                 String chat_id = jobject.getString("chat_id"); //채팅 읽은 사람 수
                 String chatRoom_imgUrl = jobject.getString("chatRoom_imgUrl"); //채팅 읽은 사람 수
-
+                String callee_nickname = jobject.getString("callee_nickname");
                 // 0: 채팅 구분 번호 1: 채팅방에 초대된 유저 idx
                 // 2: 채팅방에 초대된 유저 닉네임 3: 채팅 내용
                 // 4: 보낸사람(방장) idx
@@ -370,6 +387,7 @@ public class SocketThread extends Thread {
                 // 13: 채팅 읽은 사람 수
                 // 14: 채팅 idx 번호
                 // 15: 채팅방 이미지 url
+                // 16: 영상통화 요청을 받는 유저의 닉네임
 
                 //json parsing한 채팅방 정보 리스트에 저장.
                 List_roomInfor.add(0, status_num);
@@ -388,6 +406,8 @@ public class SocketThread extends Thread {
                 List_roomInfor.add(13, chat_rp_cnt);
                 List_roomInfor.add(14, chat_id);
                 List_roomInfor.add(15, chatRoom_imgUrl);
+                List_roomInfor.add(16, callee_nickname);
+
             }
         } catch (JSONException e) {
             //json 형식 에러
@@ -439,6 +459,7 @@ public class SocketThread extends Thread {
             jobject.put("chat_rp_cnt", List_roomInfor.get(13)); //채팅 읽은 사람 수
             jobject.put("chat_id", List_roomInfor.get(14)); //채팅 idx 번호
             jobject.put("chatRoom_imgUrl", List_roomInfor.get(15)); //채팅방 이미지 url
+            jobject.put("callee_nickname", List_roomInfor.get(16));  //영상통화 요청을 받는 유저의 닉네임
             jarray.put(jobject);
         } catch (JSONException e) {
             System.out.println("서버에서 데이터 보낼 때, JSON 변환 오류");
