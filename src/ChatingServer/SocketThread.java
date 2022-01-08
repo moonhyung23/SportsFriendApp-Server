@@ -302,7 +302,6 @@ public class SocketThread extends Thread {
                     List_roomInfor.set(13, rp_Cnt);
                     //DB에 채팅 정보 저장
                     returnValue = dbManager.Insert_ChatInfor(List_roomInfor, 2, 2);
-                    /*BBBBB*/
                     // -최근 채팅 보낸 날짜 DB에서 수정
                     dbManager.update_chatRoom_editDate(List_roomInfor);
                     String[] ar_return = returnValue.split("\\$");
