@@ -318,6 +318,7 @@ public class SocketThread extends Thread {
                 }
             }
         } catch (Exception e) {
+
         }
     }
 
